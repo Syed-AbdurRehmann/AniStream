@@ -1,0 +1,16 @@
+node_modules
+server/node_modules
+server/data/*.db
+dist
+.env
+server/.env
+.git
+.gitignore
+*.md
+tests
+test-results
+playwright-report
+playwright.config.js
+.playwright-mcp
+scripts
+data

@@ -15,6 +15,8 @@ import SearchResults from './pages/SearchResults'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
+import TermsOfService from './pages/TermsOfService'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="/history" element={<><Navbar /><History /><Footer /></>} />
             <Route path="/search" element={<><Navbar /><SearchResults /><Footer /></>} />
             <Route path="/profile" element={<><Navbar /><Profile /><Footer /></>} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </div>

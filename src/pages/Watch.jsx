@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { getMovieDetails, getTVDetails, getTVSeasonDetails, getImageUrl, formatRating, getYear, EMBED_PROVIDERS } from '../api/tmdb'
 import { addToHistory, getPreferences, setPreference } from '../utils/storage'
 import { useAuth } from '../context/AuthContext'
 import { FiChevronLeft, FiChevronRight, FiDownload, FiCheck, FiPlay, FiMessageSquare, FiShield, FiAlertTriangle, FiRefreshCw } from 'react-icons/fi'
 import AdBlocker from '../components/AdBlocker'
+import Comments from '../components/Comments'
 import './Watch.css'
 
 export default function Watch({ type }) {
@@ -49,7 +50,16 @@ export default function Watch({ type }) {
     }
   }, [data, season, episode])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — use refs to avoid stale closures
+  const episodeRef = React.useRef(episode)
+  const episodesRef = React.useRef(episodes)
+  const seasonRef = React.useRef(season)
+  const dataRef = React.useRef(data)
+  useEffect(() => { episodeRef.current = episode }, [episode])
+  useEffect(() => { episodesRef.current = episodes }, [episodes])
+  useEffect(() => { seasonRef.current = season }, [season])
+  useEffect(() => { dataRef.current = data }, [data])
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
@@ -60,7 +70,7 @@ export default function Watch({ type }) {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [episode, episodes, season, data])
+  }, [])
 
   async function loadData() {
     setLoading(true)
@@ -211,6 +221,15 @@ export default function Watch({ type }) {
             </label>
           </div>
           <div className="watch__controls-right">
+            <a
+              href={`https://dl.vidsrc.vip/movie/${id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary btn-sm watch__download-btn"
+              title="Download"
+            >
+              <FiDownload size={14} /> Download
+            </a>
             <button
               className="btn btn-secondary btn-sm watch__reload-btn"
               onClick={() => setPlayerKey(prev => prev + 1)}
@@ -246,16 +265,12 @@ export default function Watch({ type }) {
 
       {/* Comments section */}
       <div className="watch__comments container">
-        <h3><FiMessageSquare /> Comments</h3>
-        <div className="watch__comments-login">
-          {isAuthenticated ? (
-            <p>Comments coming soon! Signed in as <strong>{user.username}</strong></p>
-          ) : (
-            <p>
-              <Link to="/login" state={{ from: location.pathname + location.search }}>Log in</Link> to join the discussion
-            </p>
-          )}
-        </div>
+        <Comments
+          mediaType={type}
+          tmdbId={id}
+          season={type === 'tv' ? season : undefined}
+          episode={type === 'tv' ? episode : undefined}
+        />
       </div>
 
       {/* Episodes (TV) */}

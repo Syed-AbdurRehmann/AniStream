@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { FiPlay, FiMonitor, FiZap, FiSearch, FiBookmark, FiRotateCw, FiCheck, FiArrowDown, FiArrowRight } from 'react-icons/fi'
 import './Landing.css'
@@ -28,6 +29,46 @@ const SHORTCUTS = [
   { key: '←', action: 'Rewind 5 seconds' },
   { key: '→', action: 'Forward 5 seconds' },
 ]
+
+// Animated counter hook — counts from 0 to target when element is visible
+function useCountUp(target, duration = 2000) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const started = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true
+        const start = performance.now()
+        const step = (now) => {
+          const progress = Math.min((now - start) / duration, 1)
+          // Ease-out cubic
+          const eased = 1 - Math.pow(1 - progress, 3)
+          setCount(Math.floor(eased * target))
+          if (progress < 1) requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      }
+    }, { threshold: 0.3 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [target, duration])
+
+  return { count, ref }
+}
+
+function AnimatedStat({ target, suffix = '', label }) {
+  const { count, ref } = useCountUp(target)
+  return (
+    <div className="landing__stat" ref={ref}>
+      <span className="landing__stat-num gradient-text">{count.toLocaleString()}{suffix}</span>
+      <span className="landing__stat-label">{label}</span>
+    </div>
+  )
+}
 
 export default function Landing() {
   return (
@@ -84,10 +125,7 @@ export default function Landing() {
       {/* Stats */}
       <section id="stats" className="landing__stats">
         <div className="landing__stats-grid">
-          <div className="landing__stat">
-            <span className="landing__stat-num gradient-text">50,000+</span>
-            <span className="landing__stat-label">Movies & Shows</span>
-          </div>
+          <AnimatedStat target={50000} suffix="+" label="Movies & Shows" />
           <div className="landing__stat">
             <span className="landing__stat-num gradient-text">1080p</span>
             <span className="landing__stat-label">Max Quality</span>
@@ -199,14 +237,14 @@ export default function Landing() {
             <span className="landing__footer-tagline">Watch movies online free — HD streaming for all movie lovers.</span>
           </div>
           <div className="landing__footer-links">
-            <a href="#">Terms of Service</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Contact</a>
+            <Link to="/terms">Terms of Service</Link>
+            <Link to="/privacy">Privacy Policy</Link>
+            <a href="mailto:contact@cineweb.app">Contact</a>
           </div>
           <div className="landing__footer-socials">
-            <a href="#">💬</a>
-            <a href="#">🐦</a>
-            <a href="#">📂</a>
+            <a href="https://discord.gg/cineweb" target="_blank" rel="noopener noreferrer">💬</a>
+            <a href="https://twitter.com/cineweb" target="_blank" rel="noopener noreferrer">🐦</a>
+            <a href="https://github.com/cineweb" target="_blank" rel="noopener noreferrer">📂</a>
           </div>
         </div>
         <div className="landing__footer-bottom">

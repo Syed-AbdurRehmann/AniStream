@@ -6,7 +6,7 @@ import { FiUser, FiMail, FiLock, FiTrash2, FiSave, FiLogOut, FiFilm, FiClock, Fi
 import './Auth.css'
 
 export default function Profile() {
-  const { user, logout, refreshUser } = useAuth()
+  const { user, loading: authLoading, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -18,21 +18,38 @@ export default function Profile() {
   const [showDelete, setShowDelete] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) { navigate('/login'); return }
     setUsername(user.username)
     setEmail(user.email)
     loadStats()
-  }, [user])
+  }, [user, authLoading])
+
+  if (authLoading) {
+    return (
+      <div className="loading-container" style={{ minHeight: '100vh', paddingTop: '100px' }}>
+        <div className="spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   async function loadStats() {
     try {
       const [wl, hist] = await Promise.all([
-        getServerWatchlist().catch(() => ({ watchlist: [] })),
-        getServerHistory(1, 0).catch(() => ({ history: [], total: 0 })),
+        getServerWatchlist().catch(() => ({ watchlist: {} })),
+        getServerHistory(50, 0).catch(() => ({ history: [], total: 0 })),
       ])
+      // watchlist is an object { watching: [], toWatch: [], watched: [] }
+      const watchlistObj = wl.watchlist || {}
+      const totalWatchlist = (watchlistObj.watching?.length || 0) +
+                             (watchlistObj.toWatch?.length || 0) +
+                             (watchlistObj.watched?.length || 0)
       setStats({
-        watchlist: wl.watchlist?.length || 0,
-        history: hist.total || 0,
+        watchlist: totalWatchlist,
+        history: hist.total || hist.history?.length || 0,
       })
     } catch { /* ok */ }
   }
@@ -86,7 +103,10 @@ export default function Profile() {
 
   if (!user) return null
 
-  const joined = new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const joinedDate = user.created_at ? new Date(user.created_at) : null
+  const joined = joinedDate && !isNaN(joinedDate.getTime())
+    ? joinedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : 'Recently'
 
   return (
     <div className="profile">

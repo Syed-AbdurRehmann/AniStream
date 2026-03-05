@@ -7,6 +7,7 @@ export default function MediaCard({ item, type }) {
   const title = item.title || item.name
   const date = item.release_date || item.first_air_date
   const rating = item.vote_average
+  const episodeCount = item.number_of_episodes
 
   return (
     <Link to={`/${mediaType}/${item.id}`} className="media-card">
@@ -23,6 +24,9 @@ export default function MediaCard({ item, type }) {
           </span>
           <span className="badge badge-hd">HD</span>
         </div>
+        {mediaType === 'tv' && episodeCount > 0 && (
+          <span className="media-card__ep-count">{episodeCount} EP</span>
+        )}
         <div className="media-card__overlay">
           <div className="media-card__play">
             <FiPlay size={20} color="white" fill="white" />

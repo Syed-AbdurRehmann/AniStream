@@ -177,8 +177,8 @@ export default function Catalog() {
 
         {/* Grid */}
         <div className="catalog__grid">
-          {items.map(item => (
-            <MediaCard key={item.id} item={item} type={mediaType} />
+          {items.map((item, index) => (
+            <MediaCard key={`${item.id}-${index}`} item={item} type={mediaType} />
           ))}
         </div>
 

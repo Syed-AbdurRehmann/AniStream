@@ -16,15 +16,15 @@ export default function Footer() {
         </div>
 
         <div className="footer__links">
-          <Link to="/home">Terms of Service</Link>
-          <Link to="/home">Privacy Policy</Link>
-          <Link to="/home">Contact</Link>
+          <Link to="/terms">Terms of Service</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+          <a href="mailto:contact@cineweb.app">Contact</a>
         </div>
 
         <div className="footer__socials">
-          <a href="#" className="footer__social" title="Discord"><FaDiscord /></a>
-          <a href="#" className="footer__social" title="Twitter"><FiTwitter /></a>
-          <a href="#" className="footer__social" title="GitHub"><FiGithub /></a>
+          <a href="https://discord.gg/cineweb" target="_blank" rel="noopener noreferrer" className="footer__social" title="Discord"><FaDiscord /></a>
+          <a href="https://twitter.com/cineweb" target="_blank" rel="noopener noreferrer" className="footer__social" title="Twitter"><FiTwitter /></a>
+          <a href="https://github.com/cineweb" target="_blank" rel="noopener noreferrer" className="footer__social" title="GitHub"><FiGithub /></a>
         </div>
       </div>
       <div className="footer__bottom">

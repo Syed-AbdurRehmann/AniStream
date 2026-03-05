@@ -6,6 +6,7 @@ import rateLimitPkg from 'express-rate-limit'
 import db from './db.js'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
+import commentsRoutes from './routes/comments.js'
 import { scrapeStreamUrl } from './scrapers/index.js'
 
 const rateLimit = rateLimitPkg
@@ -16,7 +17,9 @@ const isProduction = process.env.NODE_ENV === 'production'
 // ==================== SECURITY ====================
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 app.use(cors({
-  origin: isProduction ? (process.env.FRONTEND_URL || 'https://cineweb.app') : '*',
+  origin: isProduction
+    ? (process.env.FRONTEND_URL || 'https://cineweb.aniweb.online')
+    : '*',
   credentials: true,
 }))
 app.use(express.json({ limit: '1mb' }))
@@ -31,6 +34,7 @@ app.use('/api/auth/register', authLimiter)
 // ==================== ROUTES ====================
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/comments', commentsRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -96,6 +96,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_continue_user ON continue_watching(user_id);
   CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
   CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tmdb_id INTEGER NOT NULL,
+    media_type TEXT NOT NULL CHECK(media_type IN ('movie', 'tv')),
+    season INTEGER,
+    episode INTEGER,
+    content TEXT NOT NULL,
+    parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_comments_media ON comments(tmdb_id, media_type);
+  CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
+  CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
 `)
 
 // ==================== MIGRATIONS ====================

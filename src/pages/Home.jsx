@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getTrending, getNowPlayingMovies, getPopularMovies, getTopRatedMovies, getOnTheAirTV, getAiringTodayTV, getImageUrl, getBackdropUrl, formatRating } from '../api/tmdb'
+import { getTrending, getNowPlayingMovies, getPopularMovies, getTopRatedMovies, getPopularTV, getOnTheAirTV, getAiringTodayTV, getRecentlyUpdated, getImageUrl, getBackdropUrl, formatRating } from '../api/tmdb'
 import MediaRow from '../components/MediaRow'
+import AiringSchedule from '../components/AiringSchedule'
 import { FiPlay, FiInfo, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import './Home.css'
 
@@ -14,6 +15,7 @@ export default function Home() {
   const [popularMovies, setPopularMovies] = useState([])
   const [airingTV, setAiringTV] = useState([])
   const [topRated, setTopRated] = useState([])
+  const [recentlyUpdated, setRecentlyUpdated] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -35,12 +37,13 @@ export default function Home() {
 
   async function loadData() {
     try {
-      const [trendRes, npRes, popRes, airRes, trRes] = await Promise.all([
+      const [trendRes, npRes, popRes, airRes, trRes, ruRes] = await Promise.all([
         getTrending('all', 'day'),
         getNowPlayingMovies(),
         getPopularMovies(),
         getOnTheAirTV(),
         getTopRatedMovies(),
+        getRecentlyUpdated(),
       ])
       setFeatured(trendRes.results.slice(0, 5))
       setTrending(trendRes.results)
@@ -48,6 +51,7 @@ export default function Home() {
       setPopularMovies(popRes.results)
       setAiringTV(airRes.results)
       setTopRated(trRes.results)
+      setRecentlyUpdated(ruRes.results)
     } catch (e) {
       console.error(e)
     } finally {
@@ -57,8 +61,21 @@ export default function Home() {
 
   async function loadTrending(window) {
     try {
-      const data = await getTrending('all', window)
-      setTrending(data.results)
+      if (window === 'month') {
+        // TMDB doesn't have a 'month' window, use popular movies as proxy
+        const [movData, tvData] = await Promise.all([
+          getPopularMovies(),
+          getPopularTV(),
+        ])
+        const combined = [...movData.results.map(m => ({ ...m, media_type: 'movie' })),
+                          ...tvData.results.map(t => ({ ...t, media_type: 'tv' }))]
+          .sort((a, b) => b.popularity - a.popularity)
+          .slice(0, 20)
+        setTrending(combined)
+      } else {
+        const data = await getTrending('all', window)
+        setTrending(data.results)
+      }
     } catch (e) { console.error(e) }
   }
 
@@ -132,6 +149,7 @@ export default function Home() {
           filters={[
             { label: 'Today', value: 'day' },
             { label: 'This Week', value: 'week' },
+            { label: 'This Month', value: 'month' },
           ]}
           activeFilter={trendingFilter}
           onFilterChange={setTrendingFilter}
@@ -142,6 +160,12 @@ export default function Home() {
 
         {/* Currently Airing TV */}
         <MediaRow title="Currently Airing TV" items={airingTV} type="tv" />
+
+        {/* Recently Updated */}
+        <MediaRow title="Recently Updated" items={recentlyUpdated} type="tv" />
+
+        {/* Airing Schedule */}
+        <AiringSchedule />
 
         {/* Popular Movies */}
         <MediaRow title="Popular Movies" items={popularMovies} type="movie" />

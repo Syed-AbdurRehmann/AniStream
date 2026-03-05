@@ -1,6 +1,6 @@
 const BASE_URL = 'https://api.themoviedb.org/3';
 // TMDB API key - Get your free key at https://www.themoviedb.org/settings/api
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'da2692ff6da4646db53b9ca84a8e0ecb';
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
 // Embed providers for streaming — ordered by quality / least ads
@@ -173,6 +173,27 @@ export async function getAiringTodayTV(page = 1) {
 
 export async function getOnTheAirTV(page = 1) {
   const data = await fetchTMDB('/tv/on_the_air', { page });
+  data.results = filterNSFW(data.results);
+  return data;
+}
+
+// Recently changed/updated shows — combines on_the_air with recent episode data
+export async function getRecentlyUpdated(page = 1) {
+  const data = await fetchTMDB('/tv/on_the_air', { page });
+  data.results = filterNSFW(data.results);
+  return data;
+}
+
+// Get TV shows airing on a specific date for the schedule widget
+export async function getAiringSchedule(date) {
+  // date format: YYYY-MM-DD
+  const data = await fetchTMDB('/discover/tv', {
+    'air_date.gte': date,
+    'air_date.lte': date,
+    sort_by: 'popularity.desc',
+    with_type: '2|4', // Scripted + Miniseries
+    page: 1,
+  });
   data.results = filterNSFW(data.results);
   return data;
 }
